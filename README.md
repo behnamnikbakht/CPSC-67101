@@ -4,7 +4,9 @@
 This is the project repository for the course Design and Implementation of Database Systems (CPSC-671) at university of Calgary
 
 ---
-Behnam Nikbakhtbideh
+Author: Behnam Nikbakhtbideh
+
+Date: November 2021
 
 ---
 
