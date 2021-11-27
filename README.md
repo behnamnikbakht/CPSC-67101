@@ -298,7 +298,10 @@ that utilized a simple Bayesian classifier implemented by NLTK.
 
 I run this classifier against two datasets, in each case, 10% of data is considered as test-set and the remaining as training-set.
 
+It would be possible to train model in a k-fold cross validation environment to overcome some kinds of bias.
+
 In one dataset with about 40,000 entries, it got a very low accuracy result (15%) that is resulted from the nature of its classes. I mean that there is a strict bond between classes like "sadness" and "worry" and Bayesian classifier fails with this kind of classes.
+
 But regarding the 6 basic emotions that are completely independent, In other dataset it got a very better accuracy (72%) which is about two times better than the text2emotion library.
 
 
