@@ -142,7 +142,143 @@ like considering “not” as the opposite semantic value, or normalizing term f
 Multiple solutions using Bayesian, SVM, decision-trees (ID3), or deep learning approach could be used to make a relationship between text, words (tokens), and classes.
 In the following, I will introduce a model that uses Bayesian model for train/test with a range of pre-processing that is experimented to gain better results.
 
+## Implementation
+I use the [nltk](https://www.nltk.org/) that enhances multiple facilities required for this project.
 
+### Setup
+
+First of all, just like any other python application, create your own virtual environment and run this to install required libraries:
+
+```shell
+pip install -r ./requirements.txt
+```
+
+Then run this command to download the required standard datasets including wordnet and stopwords.
+
+```shell
+python model/setup.py
+```
+
+This command will download required datasets.
+
+### Preparation
+
+in the file [emotion_recognition.py](model/emotion_recognition.py) I have implemented a class named <i>TextItem</i> to encapsulate a unit of work for a single tweet or any other text.
+
+This class performs a set of pre-processing as follows:
+1. tokenization:
+   1. split by space or new line
+   2. convert to lowerCase
+2. remove stop words and single-character words
+3. lemmatize tokens based on the wordnet, in a form that only consider <i>Adj, Noun, Verb, Adv</i>.
+4. find synonyms for each token. We might consider this option later for Bayesian Networks.
+5. find frequency for each token.
+
+#### Example:
+
+Input: `i am feeling good today because the whether is perfect`
+
+Output:
+
+<b>Tokens</b>:
+```json
+[
+  'feel',
+  'good',
+  'today',
+  'perfect'
+]
+```
+<b>Synonyms</b>:
+```json
+{
+  "feel": [
+    "experience",
+    "look",
+    "tone",
+    "feeling",
+    "sense",
+    "finger",
+    "flavour",
+    "palpate",
+    "smell",
+    "flavor",
+    "find",
+    "spirit",
+    "tactile_property"
+  ],
+  "good": [
+    "adept",
+    "estimable",
+    "skillful",
+    "serious",
+    "proficient",
+    "dependable",
+    "secure",
+    "safe",
+    "near",
+    "expert",
+    "thoroughly",
+    "full",
+    "undecomposed",
+    "ripe",
+    "effective",
+    "in_force",
+    "right",
+    "in_effect",
+    "goodness",
+    "well",
+    "commodity",
+    "trade_good",
+    "unspoiled",
+    "skilful",
+    "upright",
+    "beneficial",
+    "unspoilt",
+    "just",
+    "dear",
+    "salutary",
+    "honest",
+    "soundly",
+    "respectable",
+    "practiced",
+    "sound",
+    "honorable"
+  ],
+  "today": [
+    "nowadays",
+    "now"
+  ],
+  "perfect": [
+    "sodding",
+    "consummate",
+    "utter",
+    "thoroughgoing",
+    "hone",
+    "double-dyed",
+    "gross",
+    "perfective_tense",
+    "staring",
+    "everlasting",
+    "pure",
+    "perfect_tense",
+    "stark",
+    "unadulterated",
+    "arrant",
+    "perfective",
+    "complete"
+  ]
+}
+```
+<b>Frequencies</b>:
+```json
+{
+  "feel": 1,
+  "good": 1,
+  "today": 1,
+  "perfect": 1
+}
+```
 ## References
 [1] Du, S., Tao, Y., &#38; Martinez, A. M. (2014). Compound facial expressions of emotion. Proceedings of the National Academy of Sciences, 111(15), E1454–E1462. https://doi.org/10.1073/PNAS.1322355111
 
