@@ -176,7 +176,7 @@ This class performs a set of pre-processing as follows:
 
 #### Example:
 
-Input: `i am feeling good today because the whether is perfect`
+Input: `i am feeling good today because the weather is perfect`
 
 Output:
 
@@ -186,6 +186,7 @@ Output:
   "feel",
   "good",
   "today",
+  "weather",
   "perfect"
 ]
 ```
@@ -249,6 +250,15 @@ Output:
     "nowadays",
     "now"
   ],
+  "weather": [
+    "conditions",
+    "atmospheric_condition",
+    "brave_out",
+    "brave",
+    "endure",
+    "weather_condition",
+    "upwind"
+  ],
   "perfect": [
     "sodding",
     "consummate",
@@ -276,6 +286,7 @@ Output:
   "feel": 1,
   "good": 1,
   "today": 1,
+  "weather": 1,
   "perfect": 1
 }
 ```

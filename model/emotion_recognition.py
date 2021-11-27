@@ -64,7 +64,7 @@ class TextItem:
 
 
 text = """
-i am feeling good today because the whether is perfect"""
+i am feeling good today because the weather is perfect"""
 t = TextItem(text)
 t.preprocessing()
 
