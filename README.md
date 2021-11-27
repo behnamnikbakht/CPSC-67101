@@ -84,9 +84,9 @@ In addition to these pre-processing steps, other tasks to remove stop-words, doi
 ## Model
 To build a model, I first selected an open-source library [6] and analyzed its accuracy against a dataset [7] with 16000 classified text entries.
 Due to some differences between these two models, 14696 entries are analyzed and among them, only 5425 items are classified correctly which makes about 37%, and the overall time was about 16min.
-[The source code is available here](comparison/cmp_text2emotion.py)
+[The source code is available here](cmp_text2emotion.py)
 
-Because of the fact that tweets are different from ordinary text, I run [this](comparison/cmp2_text2emotion.py) comparison against another dataset [8] specific to tweets with 40,000 entries.
+Because of the fact that tweets are different from ordinary text, I run [this](cmp2_text2emotion.py) comparison against another dataset [8] specific to tweets with 40,000 entries.
 Also despite the previous examination, I ignored direct translation of classes.
 For example, one category like “worry” in the dataset might be related to multiple categories like “fear, sadness, anger” in the model.
 By the way, here is a part of the result of this comparison:
@@ -153,17 +153,17 @@ First of all, just like any other python application, create your own virtual en
 pip install -r ./requirements.txt
 ```
 
-Then run this command to download the required standard datasets including wordnet and stopwords.
+Then run this command to download the required standard datasets including wordnet and stopwords and punkt (for tokenizer).
 
 ```shell
-python model/setup.py
+python setup.py
 ```
 
 This command will download required datasets.
 
 ### Preparation
 
-in the file [emotion_recognition.py](model/emotion_recognition.py) I have implemented a class named <i>TextItem</i> to encapsulate a unit of work for a single tweet or any other text.
+in the file [emotion_recognition.py](emotion_recognition.py) I have implemented a class named <i>TextItem</i> to encapsulate a unit of work for a single tweet or any other text.
 
 This class performs a set of pre-processing as follows:
 1. tokenization:
@@ -290,6 +290,18 @@ Output:
   "perfect": 1
 }
 ```
+
+### Classifier
+
+In the first step, I created a class named <i>NltkClassifier</i> in [emotion_recognition.py](emotion_recognition.py)
+that utilized a simple Bayesian classifier implemented by NLTK.
+
+I run this classifier against two datasets, in each case, 10% of data is considered as test-set and the remaining as training-set.
+
+In one dataset with about 40,000 entries, it got a very low accuracy result (15%) that is resulted from the nature of its classes. I mean that there is a strict bond between classes like "sadness" and "worry" and Bayesian classifier fails with this kind of classes.
+But regarding the 6 basic emotions that are completely independent, In other dataset it got a very better accuracy (72%) which is about two times better than the text2emotion library.
+
+
 ## References
 [1] Du, S., Tao, Y., &#38; Martinez, A. M. (2014). Compound facial expressions of emotion. Proceedings of the National Academy of Sciences, 111(15), E1454–E1462. https://doi.org/10.1073/PNAS.1322355111
 

@@ -4,6 +4,8 @@ from nltk.corpus import wordnet as wn
 from nltk.stem import WordNetLemmatizer
 from collections import defaultdict
 
+from data_loader import DataLoader
+
 stopwords = nltk.corpus.stopwords.words("english")
 
 # this class represents a unit for analyzing tweet (or any text in general)
@@ -63,9 +65,62 @@ class TextItem:
         self.frequency = nltk.FreqDist([w.lower() for w in self.tokens])
 
 
-text = """
-i am feeling good today because the weather is perfect"""
-t = TextItem(text)
-t.preprocessing()
+# text = """
+# i am feeling good today because the weather is perfect"""
+# t = TextItem(text)
+# t.preprocessing()
+#
+# print("tokens = {}, synonyms = {}, frequency = {}".format(t.tokens, t.synonyms, t.frequency.items()))
 
-print("tokens = {}, synonyms = {}, frequency = {}".format(t.tokens, t.synonyms, t.frequency.items()))
+class Classifier(object):
+
+    def __init__(self):
+        self.data_loader = DataLoader()
+
+    def getLabeledDataset(self):
+        dataset = self.data_loader.load2()
+        size = len(dataset)
+        test_set_size = int(size / 10)
+        print("size of all labeled labeled_dataset = {}".format(size))
+        # return test_set, train_set as train_set contains 90% of all
+        return dataset[test_set_size:], dataset[:test_set_size]
+
+
+class NltkClassifier(Classifier):
+    def __init__(self):
+        super(NltkClassifier, self).__init__()
+
+    def preparation(self):
+        plain_train_set, plain_test_set = self.getLabeledDataset()
+        print("train_set = {}, test_set = {}".format(len(plain_train_set), len(plain_test_set)))
+
+        self.train_set = []
+        self.test_set = []
+
+        for p,c in plain_train_set:
+            t = TextItem(p)
+            t.preprocessing()
+            self.train_set.append((t,c))
+
+        for p,c in plain_test_set:
+            t = TextItem(p)
+            t.preprocessing()
+            self.test_set.append((t,c))
+
+        self.classifier = nltk.NaiveBayesClassifier.train([(listToDict(t.tokens),c) for t,c in self.train_set])
+
+        stat = {"correct": 0, "all": 0}
+        for p, c in self.test_set:
+            cls = self.classifier.classify(listToDict(p.tokens))
+            if cls == c:
+                stat["correct"] = stat["correct"] + 1
+            stat["all"] = stat["all"] + 1
+            #print("test = {}, c = {}".format(cls, c))
+
+        print("stat = {}, accuracy = {}%".format(stat, 100 * stat["correct"] / stat["all"]))
+
+def listToDict(l):
+    return {l[i]: l[i] for i in range(len(l))}
+
+nltkClassifier = NltkClassifier()
+nltkClassifier.preparation()
