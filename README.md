@@ -183,10 +183,10 @@ Output:
 <b>Tokens</b>:
 ```json
 [
-  'feel',
-  'good',
-  'today',
-  'perfect'
+  "feel",
+  "good",
+  "today",
+  "perfect"
 ]
 ```
 <b>Synonyms</b>:
