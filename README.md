@@ -11,7 +11,10 @@ Date: November 2021
 ---
 
 ## Introduction
-Emotion Recognition is a kind of classification problem to detect what emotion the human actor has in media or text.
+Emotion Recognition and Sentiment Analysis are kinds of classification problems to detect what emotion/sentiment the human actor has in media or text.
+
+The focus of sentiment analysis is to derive information from human language for interpreting views and feelings to assign a label like positive, negative, or neutral. 
+However, emotion detection aims at finding out more specific sentiment tones. 
 According to [1], these emotions are limited to six basic categories: <b>happiness, surprise, sadness, anger, fear, and disgust</b>.
 In fact, other complex emotional states can be inferred via these universal categories with respect to situations like culture and sex.
 
@@ -27,6 +30,18 @@ In terms of input type, techniques in this area could be categorized in three ma
 ### Multi-modal
 Most of the work in emotion recognition focus on text because of the fact that tweets are mostly in text.
 But in some papers like [4], it tries to fuse both visual and textual models to get a more comprehensive result.
+
+Emotion Recognition can be applied to text, speech, and facial expressions.
+So there is a solution to combine the result for each of these problems.
+For example, I run these two recognition earlier on some audio and image (or video):
+#### Audio
+By using tools like [this](https://github.com/qiuqiangkong/audioset_tagging_cnn) that is based on Torch & Pandas, we can analyze a voice (not necessarily speech) and get some classes like ![this](docs/img/audio.png)
+#### Image
+In another sample, I used [this](https://github.com/davisking/dlib) library for emption recognition in images (or video frames), and here is a sample of the result:
+![](docs/img/image.jpg)
+
+The most problematic part of the work here is to combine (or fuse) these results that need specific dataset.
+Most of the works use the output of prior classification as input to CNN, and then the problem is to build a model like SVM that minimizes CCC (Concordance Correlation Coefficient).
 ### Based on social networking characteristics
 Some papers try to utilize information that can be gained by social relationships and behaviour.
 For example in [5], the focus is on social media features like user’s opinions, amount of user activities (number of tweets for example), and user’s behaviour (for example, periods of being active or inactive). 
@@ -44,11 +59,27 @@ Multiple techniques like SVM, decision-trees and Bayesian models, and also deep-
 
 Supervised solutions could be devided in two general parts: <b>statistical models</b> and <b>NLP models</b>.
 
-Statistical models concentrate on entropy features of the language and mainly use solutions that are based on the N-Gram models.
+Statistical models concentrate on entropy features of the language, but in NLP solutions the very basic infrastructure of work is individual words or sentences, and not single characters.
+The most important difference in feature extraction that aims to map text into vectors.
 
-On the other hand, in NLP solutions, the very basic infrastructure of work is individual words.
-These techniques are using analysis based on tf-idf and text similarity (like Levenshtein distance).
-Also an important part of these kind of solutions is pre-processing in terms in Stemming or Lemmatization or so.
+Bag of Words is a straightforward technique for feature extraction that the vector is a matrix of words in dictionary with corresponding frequency in the input text. 
+Although this is a simple solution, is not efficient because of the sparse matrix with the size equals to the dictionary.
+To categorize text (tweet), measures like TFIDF (Term Frequency - Inverse Document Frequency) can be used to normalize vectors and gain more meaningful data instead of raw frequencies.
+Meaning that it normalizes frequency against how much the frequency of that word is in document, and how much is in the dictionary.
+For example, a word like "world" is quite frequent in english literature and might not convey a special meaning or feeling, but a word like "disgust" can be determinant to find out about semantic state of the text.
+After that, some kind of text similarity (Levenshtein Distance for example) can be applied to find the most similar set of texts to the input,
+and assign a label (emotion) based on it.
+
+However, one deficiency of these vectors is that they don't preserve the order of the words,
+and n-gram solutions can resolve this issue [9].
+For example, in a 2-gram model, `"do not worry at all"` will be mapped to a set of bigrams like 
+`{"do not", "not worry", "worry at", "at all"}`. 
+Here a token like `"not worry"` can be very helpful for detection of emotion, but in ordinary tokenization, even token `"not"` might be dropped by stop-words removal.
+
+On the other hand, statistical approaches might use n-gram based on the characters [10].
+In this approach, there is no linguistic dependency between the model and a specific language. 
+
+In addition to these pre-processing steps, other tasks to remove stop-words, doing Stemming or Lemmatization can be helpful in some cases.
 
 ## Model
 To build a model, I first selected an open-source library [6] and analyzed its accuracy against a dataset [7] with 16000 classified text entries.
@@ -81,8 +112,10 @@ By the way, here is a part of the result of this comparison:
 Meaning that if we consider {sadness, worry, hate} as one group, it will result in about 55% of accuracy.
 For happiness, if we consider {enthusiasm, love, happiness, fun, relief} in one class, it will result in 45% of accuracy.
 
-To know what should be done, first we should find how this library (and most of the similar libraries) work.
-The general flow is as follows:
+To know what should be done, first we should find how this library (and some similar libraries) work.
+Because of the fact that there isn't a specific framework to combine multiple issues like TFIDF, n-gram, Similarity, Stemming, Classification and so on, I consider this model to pursue.
+
+The flow is as follows:
 ### Preparation
 Removing stop words and redundant characters except emoji characters.
 #### Stemming
@@ -104,10 +137,10 @@ The simplest way is to split by space characters.
 But it could get more strength by wordnets as well.
 For example, “european union” might be considered as two or one tokens.
 #### Additional processing
-like considering “not” as the opposite semantic value.
+like considering “not” as the opposite semantic value, or normalizing term frequencies.
 ### Model (train or predict/evaluate)
-Multiple solutions using TF-IDF, Bayesian, and SVM could be used to make a relationship between text, words (tokens), and classes.
-In the following, we construct a model that uses Bayesian model for train/test.
+Multiple solutions using Bayesian, SVM, decision-trees (ID3), or deep learning approach could be used to make a relationship between text, words (tokens), and classes.
+In the following, I will introduce a model that uses Bayesian model for train/test with a range of pre-processing that is experimented to gain better results.
 
 
 ## References
@@ -126,3 +159,7 @@ In the following, we construct a model that uses Bayesian model for train/test.
 [7] Emotions dataset for NLP | Kaggle. (n.d.). Retrieved November 26, 2021, from https://www.kaggle.com/praveengovi/emotions-dataset-for-nlp?select=train.txt
 
 [8] text_emotion | Kaggle. (n.d.). Retrieved November 26, 2021, from https://www.kaggle.com/maysaasalama/text-emotion/version/1
+
+[9] Abdaoui, Amine, et al. "Feel: a french expanded emotion lexicon." Language Resources and Evaluation 51.3 (2017): 833-855.
+
+[10] Kruczek, J., Kruczek, P., &#38; Kuta, M. (2020). Are n-gram Categories Helpful in Text Classification? Lecture Notes in Computer Science (Including Subseries Lecture Notes in Artificial Intelligence and Lecture Notes in Bioinformatics), 12138 LNCS, 524–537. https://doi.org/10.1007/978-3-030-50417-5_39
