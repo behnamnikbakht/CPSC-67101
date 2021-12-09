@@ -6,7 +6,7 @@ This is the project repository for the course Design and Implementation of Datab
 ---
 Author: Behnam Nikbakhtbideh
 
-Date: November 2021
+Date: 9th December 2021
 
 ---
 
@@ -27,6 +27,7 @@ Also gaining benefit from the nature of social networks is considered in some of
 
 ## Related Work
 In terms of input type, techniques in this area could be categorized in three main sections:
+
 ### Multi-modal
 Most of the work in emotion recognition focus on text because of the fact that tweets are mostly in text.
 But in some papers like [2], it tries to fuse both visual and textual models to get a more comprehensive result.
@@ -34,17 +35,21 @@ But in some papers like [2], it tries to fuse both visual and textual models to 
 Emotion Recognition can be applied to text, speech, and facial expressions.
 So there is a solution to combine the result for each of these problems.
 For example, I run these two recognition earlier on some audio and image (or video):
+
 #### Audio
 By using tools like [this](https://github.com/qiuqiangkong/audioset_tagging_cnn) that is based on Torch & Pandas, we can analyze a voice (not necessarily speech) and get some classes like ![this](docs/img/audio.png)
+
 #### Image
 In another sample, I used [this](https://github.com/davisking/dlib) library for emption recognition in images (or video frames), and here is a sample of the result:
 ![](docs/img/image.jpg)
 
 The most problematic part of the work here is to combine (or fuse) these results that need specific dataset.
 Most of the works use the output of prior classification as input to CNN, and then the problem is to build a model like SVM that minimizes CCC (Concordance Correlation Coefficient).
+
 ### Based on social networking characteristics
 Some papers try to utilize information that can be gained by social relationships and behaviour.
-For example in [3], the focus is on social media features like user’s opinions, amount of user activities (number of tweets for example), and user’s behaviour (for example, periods of being active or inactive). 
+For example in [3], the focus is on social media features like user’s opinions, amount of user activities (number of tweets for example), and user’s behaviour (for example, periods of being active or inactive).
+
 ### Text-based
 Works in this domain concentrate on NLP models to analyze tweets as textual data.
 In [4] it uses a non-supervised learning model that requires no manual annotation.
@@ -116,8 +121,10 @@ To know what should be done, first we should find how this library (and some sim
 Because of the fact that there isn't a specific framework to combine multiple issues like TFIDF, n-gram, Similarity, Stemming, Classification and so on, I consider this model to pursue.
 
 The flow is as follows:
+
 ### Preparation
 Removing stop words and redundant characters except emoji characters.
+
 #### Stemming
 This is to reduce words to their structural roots.
 For example, both two words {book, books} will turn into “book”.
@@ -129,15 +136,19 @@ Winning → win
 Alone → alon
 ```
 So the result might be semantically problematic.
+
 #### Lemmatization
 On the other hand, lemmatization considers the meaning of the word, especially when it uses wordnet network.
+
 #### Tokenization
 It is to split text in a set of words.
 The simplest way is to split by space characters.
 But it could get more strength by wordnets as well.
 For example, “european union” might be considered as two or one tokens.
+
 #### Additional processing
 like considering “not” as the opposite semantic value, or normalizing term frequencies.
+
 ### Model (train or predict/evaluate)
 Multiple solutions using Bayesian, SVM, decision-trees (ID3), or deep learning approach could be used to make a relationship between text, words (tokens), and classes.
 In the following, I will introduce a model that uses Bayesian model for train/test with a range of pre-processing that is experimented to gain better results.
@@ -304,6 +315,23 @@ In one dataset with about 40,000 entries, it got a very low accuracy result (15%
 
 But regarding the 6 basic emotions that are completely independent, In other dataset it got a very better accuracy (72%) which is about two times better than the text2emotion library.
 
+## Achievements up to 9th December
+1. performing tests for emotion recognition on audio and image separately using existing open source solutions.
+   1. the challenge with this part is to combine (fuse) the results, but no adequate dataset found for this.
+2. perform accuracy tests on one of the open source solutions for emotion recognition in tweets.
+3. implementation of an emotion recognition solution for texts (tweets)
+   1. choosing a dataset with lowest inter-dependency between classes. Because we are using Bayesian and dependency causes problems for it. The best classification uses 5 or 6 basic emotion categories.
+   2. performing multiple pre-processing techniques like tokenization, stop-words removal, stemming, and lemmatization based on wordnet.
+   3. implementing the train/predict by using Bayesian method on the output of pre-processing.
+   4. comparing the results with open-source tool that shows the accuracy at least two times better than the selected open-source tool.
+
+## Further Steps by 9th December:
+1. create a CLI to enable users to interact with the tool, or an API for programmers to integrate with this solution.
+2. I will implement and compare 3 approaches and test them in terms of accuracy, speed, FP/TN or Precision/Recall, and their performance on "not" condition that the meaning (and might be emotion) will be reversed:
+   1. Apply Bayesian model on the output (features) generated by 2-gram segmentation. In this way for example, "I am not happy" will be converted to a set of 2-grams {I am, am not, not happy}, and then the Bayesian model is applied on them.
+   2. SVM or similar models that are using a kind of distance or similarity metric. For this technique, tokens are normalized by TF/IDF. The input features might be regular tokens or 2-grams features.
+   3. Apply changes on tokenization and lemmatization, so that "I am not happy" will be tokenized as 3 tokens {I, am, not happy}.
+3. Compare the results of the part 2 for different cases on real-case tweets.
 
 ## References
 [1] Du, S., Tao, Y., &#38; Martinez, A. M. (2014). Compound facial expressions of emotion. Proceedings of the National Academy of Sciences, 111(15), E1454–E1462. https://doi.org/10.1073/PNAS.1322355111
