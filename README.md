@@ -6,7 +6,7 @@ This is the project repository for the course Design and Implementation of Datab
 ---
 Author: Behnam Nikbakhtbideh
 
-Date: 9th December 2021
+Date: 23 December 2021
 
 ---
 
@@ -23,13 +23,13 @@ Tweets have some characteristics that make them distinctive from other resources
 One feature is the multimedia nature of tweets that might contain image, audio and video.
 But the majority of works in this domain concentrate on text.
 The other feature related to social media is that when it comes to analyse data, some special inputs like emoji should be considered in NLP.
-Also gaining benefit from the nature of social networks is considered in some of the research.
+Also gaining benefit from the nature of social networks is considered in some research.
 
 ## Related Work
 In terms of input type, techniques in this area could be categorized in three main sections:
 
 ### Multi-modal
-Most of the work in emotion recognition focus on text because of the fact that tweets are mostly in text.
+Most of the work in emotion recognition focus on text because tweets are mostly in text.
 But in some papers like [2], it tries to fuse both visual and textual models to get a more comprehensive result.
 
 Emotion Recognition can be applied to text, speech, and facial expressions.
@@ -37,10 +37,10 @@ So there is a solution to combine the result for each of these problems.
 For example, I run these two recognition earlier on some audio and image (or video):
 
 #### Audio
-By using tools like [this](https://github.com/qiuqiangkong/audioset_tagging_cnn) that is based on Torch & Pandas, we can analyze a voice (not necessarily speech) and get some classes like ![this](docs/img/audio.png)
+By using tools like [PANNs](https://github.com/qiuqiangkong/audioset_tagging_cnn) that is based on Torch & Pandas, we can analyze a voice (not necessarily speech) and get some classes like ![this](docs/img/audio.png)
 
 #### Image
-In another sample, I used [this](https://github.com/davisking/dlib) library for emption recognition in images (or video frames), and here is a sample of the result:
+In another sample, I used [dlib](https://github.com/davisking/dlib) library for emotion recognition in images (or video frames), and here is a sample of the result:
 ![](docs/img/image.jpg)
 
 The most problematic part of the work here is to combine (or fuse) these results that need specific dataset.
@@ -54,7 +54,7 @@ For example in [3], the focus is on social media features like user’s opinions
 Works in this domain concentrate on NLP models to analyze tweets as textual data.
 In [4] it uses a non-supervised learning model that requires no manual annotation.
 This technique starts with a couple of hashtags like #angry & #happy, or emoticons and assign a label to each tweet, then extends its training set automatically.
-The limitation of this technique is that such initial data is not present in all kinds of tweets and it will cause a bias in the training model.
+The limitation of this technique is that such initial data is not present in all kinds of tweets, and it will cause a bias in the training model.
 
 Also in [5], it uses another kind of non-supervised learning model that is based on linguistic and acoustic features of language to automatically assign labels to each tweet.
 It seems that this technique doesn’t remove the need for learning, and only transfers it to another level which might decrease accuracy.
@@ -62,7 +62,7 @@ It seems that this technique doesn’t remove the need for learning, and only tr
 On the other hand, supervised models try to construct a model based on training data.
 Multiple techniques like SVM, decision-trees and Bayesian models, and also deep-learning models for text classification are provided in this section.
 
-Supervised solutions could be devided in two general parts: <b>statistical models</b> and <b>NLP models</b>.
+Supervised solutions could be divided in two general parts: <b>statistical models</b> and <b>NLP models</b>.
 
 Statistical models concentrate on entropy features of the language, but in NLP solutions the very basic infrastructure of work is individual words or sentences, and not single characters.
 The most important difference in feature extraction that aims to map text into vectors.
@@ -91,7 +91,7 @@ To build a model, I first selected an open-source library [8] and analyzed its a
 Due to some differences between these two models, 14696 entries are analyzed and among them, only 5425 items are classified correctly which makes about 37%, and the overall time was about 16min.
 [The source code is available here](cmp_text2emotion.py)
 
-Because of the fact that tweets are different from ordinary text, I run [this](cmp2_text2emotion.py) comparison against another dataset [10] specific to tweets with 40,000 entries.
+Because tweets are different from ordinary text, I run [a comparison](cmp2_text2emotion.py) against another dataset [10] specific to tweets with 40,000 entries.
 Also despite the previous examination, I ignored direct translation of classes.
 For example, one category like “worry” in the dataset might be related to multiple categories like “fear, sadness, anger” in the model.
 By the way, here is a part of the result of this comparison:
@@ -118,18 +118,20 @@ Meaning that if we consider {sadness, worry, hate} as one group, it will result 
 For happiness, if we consider {enthusiasm, love, happiness, fun, relief} in one class, it will result in 45% of accuracy.
 
 To know what should be done, first we should find how this library (and some similar libraries) work.
-Because of the fact that there isn't a specific framework to combine multiple issues like TFIDF, n-gram, Similarity, Stemming, Classification and so on, I consider this model to pursue.
+Because there isn't a specific framework to combine multiple issues like TFIDF, n-gram, Similarity, Stemming, Classification and so on, I consider this model to pursue.
 
 The flow is as follows:
 
 ### Preparation
 Removing stop words and redundant characters except emoji characters.
+For example, for text `I am happy`, the tokens are `['i', 'am', 'happy']` and after 
+stop-words removal, it will be `['happy']`.
 
 #### Stemming
 This is to reduce words to their structural roots.
 For example, both two words {book, books} will turn into “book”.
 Most of the well-known facilities in this part are based on statistical analysis without considering the meaning of words.
-For example, considering the PorterStemmer in nltk library, following transforms are applied:
+For example, considering the PorterStemmer in [NLTK](https://www.nltk.org/) library, following transforms are applied:
 ```
 Homes → home
 Winning → win
@@ -138,13 +140,13 @@ Alone → alon
 So the result might be semantically problematic.
 
 #### Lemmatization
-On the other hand, lemmatization considers the meaning of the word, especially when it uses wordnet network.
+On the other hand, lemmatization considers the meaning of the word, especially when it uses wordnet network. For example, `good, well` might be lemmatized into a single token `good`.
 
 #### Tokenization
 It is to split text in a set of words.
 The simplest way is to split by space characters.
-But it could get more strength by wordnets as well.
-For example, “european union” might be considered as two or one tokens.
+But it could get more strength by wordnet as well.
+For example, “European Union” might be considered as two or one token.
 
 #### Additional processing
 like considering “not” as the opposite semantic value, or normalizing term frequencies.
@@ -154,17 +156,17 @@ Multiple solutions using Bayesian, SVM, decision-trees (ID3), or deep learning a
 In the following, I will introduce a model that uses Bayesian model for train/test with a range of pre-processing that is experimented to gain better results.
 
 ## Implementation
-I use the [nltk](https://www.nltk.org/) that enhances multiple facilities required for this project.
+I use NLTK that enhances multiple facilities required for this project.
 
 ### Setup
 
-First of all, just like any other python application, create your own virtual environment and run this to install required libraries:
+First of all, just like any other python application, create your own virtual environment and run the following command to install required libraries:
 
 ```shell
 pip install -r ./requirements.txt
 ```
 
-Then run this command to download the required standard datasets including wordnet and stopwords and punkt (for tokenizer).
+Then run this command to download the required standard datasets including wordnet, stopwords and punkt (for tokenizer).
 
 ```shell
 python setup.py
@@ -311,9 +313,16 @@ I run this classifier against two datasets, in each case, 10% of data is conside
 
 It would be possible to train model in a k-fold cross validation environment to overcome some kinds of bias.
 
-In one dataset with about 40,000 entries, it got a very low accuracy result (15%) that is resulted from the nature of its classes. I mean that there is a strict bond between classes like "sadness" and "worry" and Bayesian classifier fails with this kind of classes.
+In one dataset with about 40,000 entries, it got a very low accuracy result (15%) that is resulted from the nature of its classes. I mean that there is a strict bond between classes like "sadness" and "worry" and Bayesian classifier fails with this kind of classes. The complete list of emotions in this dataset is as follows:
 
-But regarding the 6 basic emotions that are completely independent, In other dataset it got a very better accuracy (72%) which is about two times better than the text2emotion library.
+```json
+['sadness', 'enthusiasm', 'neutral', 'worry', 'surprise', 'love', 'fun', 'hate', 'happiness', 'boredom', 'relief', 'anger']
+```
+
+But regarding the 6 basic emotions that are completely independent, In other dataset it got a very better accuracy (72%) which is about two times better than the text2emotion library. The complete list of emotions in this dataset is as follows that is basically based on the 6 global emotions:
+```json
+['sadness', 'anger', 'love', 'surprise', 'fear', 'joy']
+```
 
 ## Achievements up to 9th December
 1. performing tests for emotion recognition on audio and image separately using existing open source solutions.
@@ -332,6 +341,20 @@ But regarding the 6 basic emotions that are completely independent, In other dat
    2. SVM or similar models that are using a kind of distance or similarity metric. For this technique, tokens are normalized by TF/IDF. The input features might be regular tokens or 2-grams features.
    3. Apply changes on tokenization and lemmatization, so that "I am not happy" will be tokenized as 3 tokens {I, am, not happy}.
 3. Compare the results of the part 2 for different cases on real-case tweets.
+
+## Run
+To run the train/test:
+```
+python emotion_recognition.py --command test
+```
+This command will generate a model file named `trained_model`. This model also could be generated by this command:
+```
+python emotion_recognition.py --command build
+```
+After building the model, you can predict a tweet with this command:
+```
+python emotion_recognition.py --command predict --text "i am happy"
+```
 
 ## References
 [1] Du, S., Tao, Y., &#38; Martinez, A. M. (2014). Compound facial expressions of emotion. Proceedings of the National Academy of Sciences, 111(15), E1454–E1462. https://doi.org/10.1073/PNAS.1322355111

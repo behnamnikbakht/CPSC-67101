@@ -1,13 +1,17 @@
 def __read__(path, text_index, cls_index, splitter, normalizer):
     result = []
     f = open(path, 'r')
+    all_classes = []
     for line in f.readlines():
         s = line.strip().split(splitter)
         text = s[text_index]
         cls = s[cls_index]
         text, cls = normalizer(text, cls)
         if cls is not None:
+            if not cls in all_classes:
+                all_classes.append(cls)
             result.append((text, cls))
+    print("all_classes = {}".format(all_classes))
     return result
 
 

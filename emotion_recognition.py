@@ -1,3 +1,5 @@
+import argparse
+import pickle
 import nltk
 from nltk import PorterStemmer, LancasterStemmer, pos_tag
 from nltk.corpus import wordnet as wn
@@ -14,12 +16,18 @@ class TextItem:
     def __init__(self, text):
         self.text = text
 
-    def tokenize(self):
+    def tokenize(self, log=True):
+        if log:
+            print("start tokenize {}".format(self.text))
         # tokenize by space and new-line, and normalize by converting to lowercase
         tokens = [w.lower() for w in nltk.word_tokenize(self.text)]
+        if log:
+            print("tokens after wordnet tokenize = {}".format(tokens))
 
         # remove stop words from tokens, and single-character tokens
         tokens = [w for w in tokens if w not in stopwords and len(w) > 1]
+        if log:
+            print("tokens after stop words removal = {}".format(tokens))
 
         return tokens
 
@@ -57,8 +65,8 @@ class TextItem:
 
         return result, synonyms
 
-    def preprocessing(self):
-        tokens = self.tokenize()
+    def preprocessing(self, log=True):
+        tokens = self.tokenize(log)
         self.tokens, self.synonyms = self.normalize(tokens)
 
         # frequency of tokens
@@ -99,16 +107,20 @@ class NltkClassifier(Classifier):
 
         for p,c in plain_train_set:
             t = TextItem(p)
-            t.preprocessing()
+            t.preprocessing(False)
             self.train_set.append((t,c))
 
         for p,c in plain_test_set:
             t = TextItem(p)
-            t.preprocessing()
+            t.preprocessing(False)
             self.test_set.append((t,c))
 
         self.classifier = nltk.NaiveBayesClassifier.train([(listToDict(t.tokens),c) for t,c in self.train_set])
 
+        with open('trained_model', 'wb') as trained_model_file:
+            pickle.dump(self.classifier, trained_model_file)
+
+    def test(self):
         stat = {"correct": 0, "all": 0}
         for p, c in self.test_set:
             cls = self.classifier.classify(listToDict(p.tokens))
@@ -119,8 +131,35 @@ class NltkClassifier(Classifier):
 
         print("stat = {}, accuracy = {}%".format(stat, 100 * stat["correct"] / stat["all"]))
 
+    def predict(self, text):
+        with open('trained_model', 'rb') as trained_model_file:
+            trained_model = pickle.load(trained_model_file)
+            p = TextItem(text)
+            p.preprocessing()
+            return trained_model.classify(listToDict(p.tokens))
+
 def listToDict(l):
     return {l[i]: l[i] for i in range(len(l))}
 
-nltkClassifier = NltkClassifier()
-nltkClassifier.preparation()
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Tweet Emotion Recognition')
+    parser.add_argument('--command', choices=['test', 'build', 'predict'], help='t [run test], p [predict]')
+    parser.add_argument('--text', help='input text for predict')
+    args = parser.parse_args()
+
+    nltkClassifier = NltkClassifier()
+
+    print("args = {}".format(args))
+
+    if args.command == 'build':
+        nltkClassifier.preparation()
+    elif args.command == 'test':
+        nltkClassifier.preparation()
+        nltkClassifier.test()
+    elif args.command == 'predict':
+        text = args.text
+        result = nltkClassifier.predict(text)
+        print("result = {}".format(result))
+
+
+
