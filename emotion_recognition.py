@@ -1,5 +1,7 @@
 import argparse
 import pickle
+import time
+
 import nltk
 from nltk import ngrams
 from nltk import PorterStemmer, LancasterStemmer, pos_tag
@@ -13,33 +15,37 @@ stopwords = nltk.corpus.stopwords.words("english")
 
 
 class Config:
-    def __init__(self, log, ngrams_factor, tokenize_not):
+    def __init__(self, log, ngrams_factor, tokenize_not, stop_words_removal, lemmatize, stem):
         self.log = log
         self.ngrams_factor = ngrams_factor
         self.tokenize_not = tokenize_not
+        self.stop_words_removal = stop_words_removal
+        self.lemmatize = lemmatize
+        self.stem = stem
 
 
 # this class represents a unit for analyzing tweet (or any text in general)
 class TextItem:
     # constructor
-    def __init__(self, text):
+    def __init__(self, text, config):
         self.text = text
+        self.config = config
 
-    def tokenize(self, config):
-        if config.log:
+    def tokenize(self):
+        if self.config.log:
             print("start tokenize {}".format(self.text))
         # tokenize by space and new-line, and normalize by converting to lowercase
         tokens = [w.lower() for w in nltk.word_tokenize(self.text)]
-        if config.log:
+        if self.config.log:
             print("tokens after wordnet tokenize = {}".format(tokens))
 
         # n-grams
-        tokens = [' '.join(grams) for grams in ngrams(tokens, config.ngrams_factor)]
-        if config.log:
+        tokens = [' '.join(grams) for grams in ngrams(tokens, self.config.ngrams_factor)]
+        if self.config.log:
             print("after n-grams {}".format(tokens))
 
         # tokenize not
-        if config.tokenize_not:
+        if self.config.tokenize_not:
             temp = []
             i = 0
             while i < len(tokens) - 1:
@@ -50,17 +56,18 @@ class TextItem:
                     temp.append(tokens[i])
                     i = i + 1
             tokens = temp
-            if config.log:
+            if self.config.log:
                 print("after tokenize not {}".format(tokens))
 
-        # remove stop words from tokens, and single-character tokens
-        tokens = [w for w in tokens if w not in stopwords and len(w) > 1]
-        if config.log:
-            print("tokens after stop words removal = {}".format(tokens))
+        if self.config.stop_words_removal:
+            # remove stop words from tokens, and single-character tokens
+            tokens = [w for w in tokens if w not in stopwords and len(w) > 1]
+            if self.config.log:
+                print("tokens after stop words removal = {}".format(tokens))
 
         return tokens
 
-    def normalize(self, tokens):
+    def lemmatize(self, tokens):
         # lemmatizer based on wordnet semantic relationships
         lemmatizer = WordNetLemmatizer()
 
@@ -94,12 +101,21 @@ class TextItem:
 
         return result, synonyms
 
-    def preprocessing(self, config):
-        tokens = self.tokenize(config)
-        self.tokens, self.synonyms = self.normalize(tokens)
+    def stem(self, tokens):
+        stemmer = PorterStemmer()
+        tokens = [stemmer.stem(t) for t in tokens]
+        return tokens
 
-        # frequency of tokens
-        self.frequency = nltk.FreqDist([w.lower() for w in self.tokens])
+    def preprocessing(self):
+        tokens = self.tokenize()
+        if self.config.lemmatize:
+            self.tokens, self.synonyms = self.lemmatize(tokens)
+            # frequency of tokens
+            self.frequency = nltk.FreqDist([w.lower() for w in self.tokens])
+        elif self.config.stem:
+            self.tokens = self.stem(tokens)
+        else:
+            self.tokens = tokens
 
 
 class Classifier(object):
@@ -128,13 +144,13 @@ class NltkClassifier(Classifier):
         self.test_set = []
 
         for p, c in plain_train_set:
-            t = TextItem(p)
-            t.preprocessing(config)
+            t = TextItem(p, config)
+            t.preprocessing()
             self.train_set.append((t, c))
 
         for p, c in plain_test_set:
-            t = TextItem(p)
-            t.preprocessing(config)
+            t = TextItem(p, config)
+            t.preprocessing()
             self.test_set.append((t, c))
 
         self.classifier = nltk.NaiveBayesClassifier.train([(listToDict(t.tokens), c) for t, c in self.train_set])
@@ -143,22 +159,55 @@ class NltkClassifier(Classifier):
             pickle.dump(self.classifier, trained_model_file)
 
     def test(self):
+        all_classes = {'sadness' : {"tp": 0, "fp": 0, "fn": 0},
+                       'anger' : {"tp": 0, "fp": 0, "fn": 0},
+                       'love' : {"tp": 0, "fp": 0, "fn": 0},
+                       'surprise' : {"tp": 0, "fp": 0, "fn": 0},
+                       'fear' : {"tp": 0, "fp": 0, "fn": 0},
+                       'joy' : {"tp": 0, "fp": 0, "fn": 0}}
         stat = {"correct": 0, "all": 0}
+        t1 = time.time() * 1000
         for p, c in self.test_set:
             cls = self.classifier.classify(listToDict(p.tokens))
             if cls == c:
                 stat["correct"] = stat["correct"] + 1
+            if cls == c:
+                all_classes[c]["tp"] = all_classes[c]["tp"] + 1
+            else:
+                all_classes[c]["fn"] = all_classes[c]["fn"] + 1
+                all_classes[cls]["fp"] = all_classes[cls]["fp"] + 1
             stat["all"] = stat["all"] + 1
             # print("test = {}, c = {}".format(cls, c))
-
+        t2 = time.time() * 1000
+        t = t2 - t1
+        avt = t / len(self.test_set)
+        stat["time"] = t
+        stat["avt"] = avt
+        pr = 0
+        rc = 0
+        for c in all_classes:
+            stat2 = all_classes[c]
+            pr2 = stat2["tp"] / (stat2["tp"] + stat2["fp"])
+            rc2 = stat2["tp"] / (stat2["tp"] + stat2["fn"])
+            f1 = 2 * pr2 * rc2 / (pr2 + rc2)
+            stat[c] = {
+                "precision": pr2,
+                "recall": rc2,
+                "f1": f1
+            }
+            pr = pr + pr2
+            rc = rc + rc2
+        stat["precision"] = pr / len(all_classes)
+        stat["recall"] = rc / len(all_classes)
+        stat["f1"] = 2 * stat["precision"] * stat["recall"] / (stat["precision"] + stat["recall"])
         print("stat = {}, accuracy = {}%".format(stat, 100 * stat["correct"] / stat["all"]))
 
     def predict(self, text, config):
         with open('trained_model', 'rb') as trained_model_file:
             trained_model = pickle.load(trained_model_file)
-            p = TextItem(text)
+            p = TextItem(text, config)
             config.log = True
-            p.preprocessing(config)
+            p.preprocessing()
             return trained_model.classify(listToDict(p.tokens))
 
 
@@ -178,7 +227,9 @@ if __name__ == '__main__':
 
     print("args = {}".format(args))
 
-    config = Config(log=False, ngrams_factor=args.ng, tokenize_not=args.tokno)
+    config = Config(log=False, ngrams_factor=args.ng, tokenize_not=args.tokno, stop_words_removal=True, lemmatize=True, stem=True)
+
+    print("config = {}".format(config))
 
     if args.command == 'build':
         nltkClassifier.preparation(config)
