@@ -333,7 +333,7 @@ But regarding the 6 basic emotions that are completely independent, In other dat
    2. performing multiple pre-processing techniques like tokenization, stop-words removal, stemming, and lemmatization based on wordnet.
    3. implementing the train/predict by using Bayesian method on the output of pre-processing.
    4. comparing the results with open-source tool that shows the accuracy at least two times better than the selected open-source tool.
-4. The model gives wroung result when we have "not". For example, `I am not happy` will be classified as `joy`. To handle this issue:
+4. The model gives wrong result when we have "not". For example, `I am not happy` will be classified as `joy`. To handle this issue:
    1. I first added an argument to the command named `--ng` with default value of 1 to define the n-grams factor. For example, if ng = 2 then the text `I am not happy` will be tokenized as `['i am', 'am not', 'not happy']`, so the Bayesian model is applied to these tokens. The results shows that this model won't work well on Bayesian classifier and the rate of accuracy will be dropped to 30%, also the result is wrong as well. The reason might be the fact that we do not have enough data in our dataset to support the frequency of bigrams.
    2. The second solution is to tokenize `not happy` as a single token. This method results in `sadness` class for `I am not happy today` but reduces the accuracy to 65%. This is resulted from reducing the term frequency of words and divide them in two segments `positive` and `negative`.
 
