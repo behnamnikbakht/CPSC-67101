@@ -159,16 +159,18 @@ class NltkClassifier(Classifier):
             pickle.dump(self.classifier, trained_model_file)
 
     def test(self):
-        all_classes = {'sadness' : {"tp": 0, "fp": 0, "fn": 0},
-                       'anger' : {"tp": 0, "fp": 0, "fn": 0},
-                       'love' : {"tp": 0, "fp": 0, "fn": 0},
-                       'surprise' : {"tp": 0, "fp": 0, "fn": 0},
-                       'fear' : {"tp": 0, "fp": 0, "fn": 0},
-                       'joy' : {"tp": 0, "fp": 0, "fn": 0}}
+        all_classes = {'sadness' : {"tp": 0, "fp": 0, "fn": 0, "c": 0, "d": 0},
+                       'anger' : {"tp": 0, "fp": 0, "fn": 0, "c": 0, "d": 0},
+                       'love' : {"tp": 0, "fp": 0, "fn": 0, "c": 0, "d": 0},
+                       'surprise' : {"tp": 0, "fp": 0, "fn": 0, "c": 0, "d": 0},
+                       'fear' : {"tp": 0, "fp": 0, "fn": 0, "c": 0, "d": 0},
+                       'joy' : {"tp": 0, "fp": 0, "fn": 0, "c": 0, "d": 0}}
         stat = {"correct": 0, "all": 0}
         t1 = time.time() * 1000
         for p, c in self.test_set:
             cls = self.classifier.classify(listToDict(p.tokens))
+            all_classes[cls]['d'] = all_classes[cls]['d'] + 1
+            all_classes[c]['c'] = all_classes[c]['c'] + 1
             if cls == c:
                 stat["correct"] = stat["correct"] + 1
             if cls == c:
@@ -200,7 +202,7 @@ class NltkClassifier(Classifier):
         stat["precision"] = pr / len(all_classes)
         stat["recall"] = rc / len(all_classes)
         stat["f1"] = 2 * stat["precision"] * stat["recall"] / (stat["precision"] + stat["recall"])
-        print("stat = {}, accuracy = {}%".format(stat, 100 * stat["correct"] / stat["all"]))
+        print("stat = {}, accuracy = {}%, all_classes = {}".format(stat, 100 * stat["correct"] / stat["all"], all_classes))
 
     def predict(self, text, config):
         with open('trained_model', 'rb') as trained_model_file:
@@ -226,7 +228,7 @@ if __name__ == '__main__':
 
     print("args = {}".format(args))
 
-    config = Config(log=False, ngrams_factor=args.ng, tokenize_not=True, stop_words_removal=True, lemmatize=False, stem=True)
+    config = Config(log=False, ngrams_factor=args.ng, tokenize_not=True, stop_words_removal=True, lemmatize=True, stem=False)
 
     print("config = {}".format(config))
 
