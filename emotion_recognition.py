@@ -126,7 +126,7 @@ class Classifier(object):
     def getLabeledDataset(self):
         dataset = self.data_loader.load1()
         size = len(dataset)
-        test_set_size = int(size / 10)
+        test_set_size = int(size * 0.1)
         print("size of all labeled labeled_dataset = {}".format(size))
         # return test_set, train_set as train_set contains 90% of all
         return dataset[test_set_size:], dataset[:test_set_size]
@@ -220,14 +220,13 @@ if __name__ == '__main__':
     parser.add_argument('--command', choices=['test', 'build', 'predict'], help='t [run test], p [predict]')
     parser.add_argument('--text', help='input text for predict')
     parser.add_argument('--ng', type=int, default=1, help='n-grams factor')
-    parser.add_argument('--tokno', type=bool, default=False, help='tokenize not verbs in a single token')
     args = parser.parse_args()
 
     nltkClassifier = NltkClassifier()
 
     print("args = {}".format(args))
 
-    config = Config(log=False, ngrams_factor=args.ng, tokenize_not=args.tokno, stop_words_removal=True, lemmatize=True, stem=True)
+    config = Config(log=False, ngrams_factor=args.ng, tokenize_not=True, stop_words_removal=True, lemmatize=False, stem=True)
 
     print("config = {}".format(config))
 
